@@ -38,7 +38,7 @@ elseif ($uri === 'countries/image' && $method === 'GET') {
         readfile($file);
     } else {
         http_response_code(404);
-        echo json_encode(["error" => "Summary image not found"]);
+        echo json_encode(["error" => "Summary image not found"], JSON_UNESCAPED_UNICODE);
     }
 }
 elseif ($uri == 'countries/refresh' && $method == 'POST') {
@@ -52,7 +52,7 @@ elseif (preg_match('/^countries\/([^\/]+)$/', $uri, $matches)) {
         $controller->deleteCountry($countryName);
     } else {
         http_response_code(405);
-        echo json_encode(["error" => "Method not allowed"]);
+        echo json_encode(["error" => "Method not allowed"], JSON_UNESCAPED_UNICODE);
     }
 }
 elseif ($uri === 'status' && $method === 'GET') {
@@ -60,5 +60,5 @@ elseif ($uri === 'status' && $method === 'GET') {
 }
 else {
     http_response_code(404);
-    echo json_encode(["error" => "Route not found"]);
+    echo json_encode(["error" => "Route not found"], JSON_UNESCAPED_UNICODE);
 }

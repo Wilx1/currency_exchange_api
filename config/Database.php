@@ -7,10 +7,7 @@ loadEnv(__DIR__ . '/../.env');
 // $host = getenv('DB_HOST');
 
 class Database{
-    // private $host = "localhost";
-    // private $username = "root";
-    // private $password = "Totalchild6471!";
-    // private $db_name = "currency_exchange";
+
     private $conn;
 
     public function connect(){
@@ -26,7 +23,7 @@ class Database{
                 json_encode([
                     "error" => "Connection failed",
                     "details" => $this->conn->connect_error
-                ]));
+                ]), JSON_UNESCAPED_UNICODE);
         }
 
         $this->conn->query("CREATE DATABASE IF NOT EXISTS {$db_name}");
@@ -55,10 +52,8 @@ class Database{
                 json_encode([
                     "error"=>"An error occured",
                     "details"=>$this->conn->error
-                ])
-                );
-        }//else{
-           // echo "Success";
-        // }
+                ], JSON_UNESCAPED_UNICODE)
+            );
+        }
     }
 }

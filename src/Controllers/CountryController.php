@@ -7,10 +7,6 @@ class CountryController {
     private $countryModel;
     private $conn;
 
-    // public function __construct($db) {
-    //     $this->countryModel = new Country($db);
-    // }
-
    public function __construct() {
         $db = new Database();
         $conn = $db->connect();
@@ -19,6 +15,7 @@ class CountryController {
 
     // GET /countries
     public function getAllCountries() {
+        header('Content-Type: application/json; charset=utf-8');
         $filters = [];
         if (isset($_GET['region'])) {
             $filters['region'] = $_GET['region'];
@@ -31,34 +28,37 @@ class CountryController {
         }
 
         $countries = $this->countryModel->getAll($filters);
-        header('Content-Type: application/json');
-        echo json_encode($countries);
+        echo json_encode($countries, JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     // GET /countries/:name
     public function getCountryByName($name) {
+        $name = urldecode($name);
         $country = $this->countryModel->getByName($name);
 
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         if ($country) {
-            echo json_encode($country);
+            echo json_encode($country, JSON_UNESCAPED_UNICODE);
         } else {
             http_response_code(404);
-            echo json_encode(["error" => "Country not found"]);
+            echo json_encode(["error" => "Country not found"], JSON_UNESCAPED_UNICODE);
         }
     }
 
     // DELETE /countries/:name
     public function deleteCountry($name) {
+        $name = urldecode($name);
         $deleted = $this->countryModel->delete($name);
 
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         if ($deleted) {
-            echo json_encode(["message" => "Country deleted successfully"]);
+            echo json_encode(["message" => "Country deleted successfully"], JSON_UNESCAPED_UNICODE);
         } else {
             http_response_code(404);
-            echo json_encode(["error" => "Country not found or could not be deleted"]);
+            echo json_encode(["error" => "Country not found or could not be deleted"], JSON_UNESCAPED_UNICODE);
         }
+        exit;
     }
 
     // POST /countries/refresh
@@ -72,7 +72,7 @@ class CountryController {
 
         if (!$countriesData || !$exchangeData) {
             http_response_code(503);
-            echo json_encode(["error" => "External data source unavailable"]);
+            echo json_encode(["error" => "External data source unavailable"], JSON_UNESCAPED_UNICODE);
             return;
         }
 
@@ -107,32 +107,45 @@ class CountryController {
             $total++;
         }
 
-        header('Content-Type: application/json');
-       // Generate summary image
-
         $conn = $this->countryModel->getConnection();
         ImageGenerator::generateSummary($conn);
 
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             "message" => "Countries refreshed successfully",
             "total_updated" => $total,
             "timestamp" => date("Y-m-d H:i:s"),
             "summary_image" => "cache/summary.png"
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     }
     // GET /status
     public function getStatus() {
+
         $query = "SELECT COUNT(*) AS total, MAX(last_refreshed_at) AS last_refreshed_at FROM countries";
         $conn = $this->countryModel->getConnection();
         $result = $conn->query($query);
     
         $data = $result->fetch_assoc();
     
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             "total_countries" => intval($data['total']),
-            "last_refreshed_at" => $data['last_refreshed_at'] ?? null
-        ]);
+//          "last_refreshed_at" => $data['last_refreshed_at'] ?? null
+            "last_refreshed_at" => $data['last_refreshed_at'] ? date('c', strtotime($data['last_refreshed_at'])) : null
+
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
+     public function getImage() {
+        $file = __DIR__ . '/../cache/summary.png';
+        if (file_exists($file)) {
+            header('Content-Type: image/png');
+            readfile($file);
+        } else {
+            header('Content-Type: application/json');
+            http_response_code(404);
+            echo json_encode(["error" => "Summary image not found"]);
+        }
+        exit;
     }
 }
