@@ -23,7 +23,7 @@ class Database{
                 json_encode([
                     "error" => "Connection failed",
                     "details" => $this->conn->connect_error
-                ]), JSON_UNESCAPED_UNICODE);
+                ]));
         }
 
         $this->conn->query("CREATE DATABASE IF NOT EXISTS {$db_name}");
